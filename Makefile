@@ -22,9 +22,12 @@ compile2: clean
 	CC=$(PARTICLE_CC) bear -- make -f $(PARTICLE_MAKEFILE) -s compile-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) CC=$(PARTICLE_CC)
 
 compile-all:
-	cd $(MODULES) && make clean -s PLATFORM=$(PLATFORM)
-	CC=$(PARTICLE_CC) cd $(MODULES) && bear -- make all -s PLATFORM=$(PLATFORM)
-	# ln -s $(MODULES)/compile_commands.json $(DEVICE_OS_PATH)/compile_commands.json
+	cd $(DEVICE_OS_PATH)/modules && make clean -s PLATFORM=$(PLATFORM)
+	CC=$(PARTICLE_CC) cd $(DEVICE_OS_PATH)/modules && bear -- make all -s PLATFORM=$(PLATFORM)
+
+link-os:
+	ln -s $(DEVICE_OS_PATH)/modules/compile_commands.json $(DEVICE_OS_PATH)/compile_commands.json
+
 dfu:
 	make -f $(PARTICLE_MAKEFILE) -s dfu PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID)
 
