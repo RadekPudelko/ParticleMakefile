@@ -87,8 +87,8 @@ ifneq (,$(wildcard $(MY_ENV)))
 endif
 
 env:
-	@echo "Device OS Version: #(DEVICE_OS_VERSION)"
-	@echo "Device OS Path: #(DEVICE_OS_PATH)"
+	@echo "Device OS Version: $(DEVICE_OS_VERSION)"
+	@echo "Device OS Path: $(DEVICE_OS_PATH)"
 	@echo "PLATFORM: $(PLATFORM)"
 	@echo "PLATFORM_ID: $(PLATFORM_ID)"
 	@echo "APP Directory: $(APPDIR)"

@@ -1,3 +1,4 @@
+# Script to find old version of the Makefile and replace it with the new
 import os
 from os.path import isdir
 import re
