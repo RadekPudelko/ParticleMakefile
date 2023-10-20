@@ -10,12 +10,9 @@ ifneq (,$(wildcard $(MY_ENV)))
 endif
 
 # Overide global env with locals
-# unexport DEVICE_OS_VERSION
-# DEVICE_OS_VERSION:=4.2.0
-# unexport BUILDSCRIPT_VERSION
-# BUILDSCRIPT_VERSION:=1.15.0
-# unexport ARM_VERSION
-# ARM_VERSION=10.2.1
+# override DEVICE_OS_VERSION:=4.2.0
+# override BUILDSCRIPT_VERSION:=1.15.0
+# override ARM_VERSION=10.2.1
 
 DEVICE_OS_PATH:=$(TOOLCHAIN_DIR)/deviceOS/$(DEVICE_OS_VERSION)
 PARTICLE_MAKEFILE:=$(TOOLCHAIN_DIR)/buildscripts/$(BUILDSCRIPT_VERSION)/Makefile
@@ -35,8 +32,7 @@ APPDIR:=$(shell pwd)
 #
 # Comment this in to flash locally compiled device os instead of downloaded binary
 # for buildscript 1.15.0 onward
-# unexport DEVICE_OS_VERSION
-# DEVICE_OS_VERSION:=source
+# override DEVICE_OS_VERSION:=source
 
 
 # Targets
