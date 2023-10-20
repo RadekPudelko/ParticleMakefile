@@ -1,40 +1,101 @@
-# PARTICLE_MAKEFILE is an env var set in.zshrc file and points to the make file used by particle
-# EX:/Users/radek/.particle/toolchains/buildscripts/1.10.0/Makefile
-# PARTICLE_CLI is an env var set in .zshrc and points to the particle cli binary
-# EX /Users/radek/.vscode/extensions/particle.particle-vscode-core-1.15.9/src/cli/bin/darwin/amd64/particle
-# PARTICLE_CC is an env var set in .zshrc the arm compiler used by particle
-# EX: /Users/radek/.particle/toolchains/gcc-arm/10.2.1/bin/arm-none-eabi-gcc
+### MY_PARTICLE_MAKEFILE
 
-OS_VERSION=4.0.2
-DEVICE_OS_PATH=/Users/radek/.particle/toolchains/deviceOS/$(OS_VERSION)
-APPDIR=$(shell pwd)
-PLATFORM=bsom
-#PLATFORM_ID=23 # Alt to PLATFORM
-# Optional device id 
-#PARTICLE_DEVICE_ID=
+# Vars
+TOOLCHAIN_DIR:=$(shell readlink -f ~/.particle/toolchains)
 
-all: compile
+MY_ENV:=/Users/radek/code/scripts/ParticleMakefile/.env
+ifneq (,$(wildcard $(MY_ENV)))
+    include $(MY_ENV)
+    export
+endif
 
-compile:
-	make -f $(PARTICLE_MAKEFILE) -s compile-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) CC=$(PARTICLE_CC)
+# Overide global env with locals
+# DEVICE_OS_VERSION:=4.2.0
+# BUILDSCRIPT_VERSION:=1.15.0
+# ARM_VERSION=10.2.1
 
-compile2: clean
-	CC=$(PARTICLE_CC) bear -- make -f $(PARTICLE_MAKEFILE) -s compile-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) CC=$(PARTICLE_CC)
+DEVICE_OS_PATH:=$(TOOLCHAIN_DIR)/deviceOS/$(DEVICE_OS_VERSION)
+PARTICLE_MAKEFILE:=$(TOOLCHAIN_DIR)/buildscripts/$(BUILDSCRIPT_VERSION)/Makefile
+ARM_DIR:=$(TOOLCHAIN_DIR)/gcc-arm/$(ARM_VERSION)/bin/
+# PATH is only changed for the duation of this Makefile
+PATH:=$(ARM_DIR):$(PATH)
+PARTICLE_CLI:=$(shell find ~/.vscode/extensions -type f -name 'particle' | grep darwin | sort --version-sort | tail -n 1)
 
-compile-all:
-	cd $(DEVICE_OS_PATH)/modules && make clean -s PLATFORM=$(PLATFORM)
-	CC=$(PARTICLE_CC) cd $(DEVICE_OS_PATH)/modules && bear -- make all -s PLATFORM=$(PLATFORM)
+# Platforms: https://docs.particle.io/firmware/best-practices/firmware-build-options/
+PLATFORM:=bsom
+PLATFORM_ID:=23
+APPDIR:=$(shell pwd)
 
+# Optional vars
+# PARTICLE_DEVICE_ID=
+# EXTRA_CFLAGS="-DFLAG_ONE=abc -DFLAG_TWO=123"
+#
+# Comment this in to flash locally compiled device os instead of downloaded binary
+# for buildscript 1.15.0 onward
+# DEVICE_OS_VERSION:=source
+
+
+# Targets
+all: compile-user
+compile: compile-user
+compileb: compile-userb
+flash: flash-user
+clean: clean-user
+
+compile-user:
+	@make -f $(PARTICLE_MAKEFILE) -s compile-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PLATFORM_ID=$(PLATFORM_ID) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
+
+# Builds user firmware after clean with bear interception
+compile-userb: clean-user
+	@bear -- make -f $(PARTICLE_MAKEFILE) -s compile-user  PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PLATFORM_ID=$(PLATFORM_ID) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
+
+# Builds device os and user firmware after clean with bear interception
+compile-all: clean-all
+	@cd $(DEVICE_OS_PATH)/modules && bear -- make -s all PLATFORM=$(PLATFORM) PLATFORM_ID=$(PLATFORM_ID) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
+	@$(MAKE) link-os
+	@bear -- make -s all PLATFORM=$(PLATFORM)
+
+flash-user:
+	@make -f $(PARTICLE_MAKEFILE) -s flash-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
+
+# Note, buildscript 1.15.0 onward do not use your locally compiled device os, they use a download binary, so set 
+# DEVICE_OS_VERSION var to the literal string source
+flash-all:
+	@make -f $(PARTICLE_MAKEFILE) flash-all PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID) DEVICE_OS_VERSION=$(DEVICE_OS_VERSION) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
+
+clean-all:
+	@make -f '$(PARTICLE_MAKEFILE)' -s clean-all  DEVICE_OS_PATH=$(DEVICE_OS_PATH) PLATFORM=$(PLATFORM) PLATFORM_ID=$(PLATFORM_ID) APPDIR=$(APPDIR)
+
+clean-user:
+	@make -f '$(PARTICLE_MAKEFILE)' -s clean-user DEVICE_OS_PATH=$(DEVICE_OS_PATH) PLATFORM=$(PLATFORM) PLATFORM_ID=$(PLATFORM_ID) APPDIR=$(APPDIR)
+
+# Links the compile commands json to the base device os directory, happens once
 link-os:
-	ln -s $(DEVICE_OS_PATH)/modules/compile_commands.json $(DEVICE_OS_PATH)/compile_commands.json
+ifeq (,$(wildcard $(DEVICE_OS_PATH)/compile_commands.json))
+	@ln -s $(DEVICE_OS_PATH)/modules/compile_commands.json $(DEVICE_OS_PATH)/compile_commands.json
+endif
 
 dfu:
-	make -f $(PARTICLE_MAKEFILE) -s dfu PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID)
+	@make -f $(PARTICLE_MAKEFILE) -s dfu PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID)
 
-flash:
-	make -f $(PARTICLE_MAKEFILE) -s flash-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID) CC=$(PARTICLE_CC)
+TOOLCHAIN_DIR:=$(shell readlink -f ~/.particle/toolchains)
 
-clean:
-	make -f '$(PARTICLE_MAKEFILE)' clean-all -s DEVICE_OS_PATH=$(DEVICE_OS_PATH) PLATFORM=$(PLATFORM) APPDIR=$(APPDIR)
+MY_ENV:=/Users/radek/code/scripts/ParticleMakefile/.env
+ifneq (,$(wildcard $(MY_ENV)))
+    include $(MY_ENV)
+    export
+endif
 
-.PHONY: all compile1 compile2 compile-all dfu flash clean
+env:
+	@echo "Device OS Version: #(DEVICE_OS_VERSION)"
+	@echo "Device OS Path: #(DEVICE_OS_PATH)"
+	@echo "PLATFORM: $(PLATFORM)"
+	@echo "PLATFORM_ID: $(PLATFORM_ID)"
+	@echo "APP Directory: $(APPDIR)"
+	@echo "Arm version: $(ARM_VERSION)"
+	@echo "Arm binaries: $(ARM_DIR)"
+	@echo "Buildscript version: $(BUILDSCRIPT_VERSION)"
+	@echo "Buildscript path: $(PARTICLE_MAKEFILE)"
+
+.PHONY: all compile-user compile-userb compile-all compile compileb flash-user flash-all flash clean all clean-user link-os dfu env
+
