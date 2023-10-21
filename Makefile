@@ -43,7 +43,7 @@ flash: flash-user
 clean: clean-user
 
 compile-user:
-	@make -f $(PARTICLE_MAKEFILE) -s compile-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PLATFORM_ID=$(PLATFORM_ID) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
+	@bear --append -- make -f $(PARTICLE_MAKEFILE) -s compile-user PARTICLE_CLI_PATH=$(PARTICLE_CLI) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PLATFORM_ID=$(PLATFORM_ID) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
 
 # Builds user firmware after clean with bear interception
 compile-userb: clean-user
