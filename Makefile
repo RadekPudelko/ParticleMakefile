@@ -80,12 +80,6 @@ dfu:
 
 TOOLCHAIN_DIR:=$(shell readlink -f ~/.particle/toolchains)
 
-MY_ENV:=/Users/radek/code/scripts/ParticleMakefile/.env
-ifneq (,$(wildcard $(MY_ENV)))
-    include $(MY_ENV)
-    export
-endif
-
 env:
 	@echo "Device OS Version: $(DEVICE_OS_VERSION)"
 	@echo "Device OS Path: $(DEVICE_OS_PATH)"
