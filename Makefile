@@ -16,7 +16,7 @@ endif
 
 DEVICE_OS_PATH:=$(TOOLCHAIN_DIR)/deviceOS/$(DEVICE_OS_VERSION)
 PARTICLE_MAKEFILE:=$(TOOLCHAIN_DIR)/buildscripts/$(BUILDSCRIPT_VERSION)/Makefile
-ARM_DIR:=$(TOOLCHAIN_DIR)/gcc-arm/$(ARM_VERSION)/bin/
+ARM_DIR:=$(TOOLCHAIN_DIR)/gcc-arm/$(ARM_VERSION)/bin
 # PATH is only changed for the duation of this Makefile
 PATH:=$(ARM_DIR):$(PATH)
 PARTICLE_CLI:=$(shell find ~/.vscode/extensions -type f -name 'particle' | grep darwin | sort --version-sort | tail -n 1)
@@ -77,8 +77,6 @@ endif
 
 dfu:
 	@make -f $(PARTICLE_MAKEFILE) -s dfu PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID)
-
-TOOLCHAIN_DIR:=$(shell readlink -f ~/.particle/toolchains)
 
 env:
 	@echo "Device OS Version: $(DEVICE_OS_VERSION)"
