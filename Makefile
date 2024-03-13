@@ -18,7 +18,15 @@ PARTICLE_MAKEFILE:=$(TOOLCHAIN_DIR)/buildscripts/$(BUILDSCRIPT_VERSION)/Makefile
 ARM_DIR:=$(TOOLCHAIN_DIR)/gcc-arm/$(ARM_VERSION)/bin
 # PATH is only changed for the duation of this Makefile
 PATH:=$(ARM_DIR):$(PATH)
-PARTICLE_CLI_PATH:=$(shell find ~/.vscode/extensions -type f -name 'particle' | grep darwin | sort --version-sort | tail -n 1)
+uname_s:=$(shell uname -s)
+ifeq ($(uname_s),Linux)
+	PARTICLE_CLI_PATH:=$(shell find ~/.vscode/extensions -type f -name 'particle' | grep linux | sort --version-sort | tail -n 1)
+else ifeq ($(uname_s),Darwin)
+	PARTICLE_CLI_PATH:=$(shell find ~/.vscode/extensions -type f -name 'particle' | grep darwin | sort --version-sort | tail -n 1)
+else
+  # Unknown system, abort (or handle other platforms)
+  $(error Unknown system: $(uname_s))
+endif
 
 # Platforms: https://docs.particle.io/firmware/best-practices/firmware-build-options/
 PLATFORM:=bsom
