@@ -18,15 +18,7 @@ PARTICLE_MAKEFILE:=$(TOOLCHAIN_DIR)/buildscripts/$(BUILDSCRIPT_VERSION)/Makefile
 ARM_DIR:=$(TOOLCHAIN_DIR)/gcc-arm/$(ARM_VERSION)/bin
 # PATH is only changed for the duation of this Makefile
 PATH:=$(ARM_DIR):$(PATH)
-uname_s:=$(shell uname -s)
-ifeq ($(uname_s),Linux)
-	PARTICLE_CLI_PATH:=$(shell find ~/.vscode/extensions -type f -name 'particle' | grep linux | sort --version-sort | tail -n 1)
-else ifeq ($(uname_s),Darwin)
-	PARTICLE_CLI_PATH:=$(shell find ~/.vscode/extensions -type f -name 'particle' | grep darwin | sort --version-sort | tail -n 1)
-else
-  # Unknown system, abort (or handle other platforms)
-  $(error Unknown system: $(uname_s))
-endif
+PARTICLE_CLI_PATH:=$(shell find ~/bin -type f -name 'particle')
 
 # Platforms: https://docs.particle.io/firmware/best-practices/firmware-build-options/
 PLATFORM:=bsom
@@ -68,7 +60,7 @@ compile-debug:
 flash-user:
 	@make -f $(PARTICLE_MAKEFILE) -s flash-user PARTICLE_CLI_PATH=$(PARTICLE_CLI_PATH) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
 
-# Note, buildscript 1.15.0 onward do not use your locally compiled device os, they use a download binary, so set 
+# Note, buildscript 1.15.0 onward do not use your locally compiled device os, they use a download binary, so set
 # DEVICE_OS_VERSION var to the literal string source
 flash-all:
 	@make -f $(PARTICLE_MAKEFILE) flash-all PARTICLE_CLI_PATH=$(PARTICLE_CLI_PATH) DEVICE_OS_PATH=$(DEVICE_OS_PATH) APPDIR=$(APPDIR) PLATFORM=$(PLATFORM) PARTICLE_DEVICE_ID=$(PARTICLE_DEVICE_ID) DEVICE_OS_VERSION=$(DEVICE_OS_VERSION) EXTRA_CFLAGS=$(EXTRA_CFLAGS)
